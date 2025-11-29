@@ -64,18 +64,18 @@ class Chat extends Component
         broadcast(new SentMessage($message));
     }
 
-    public function getListeners()
-    {
-        return [
-            "echo-private:chat.{$this->loginId},sent-message" => 'handleNewMessage',
-        ];
-    }
-
     public function handleNewMessage($message)
     {
-        if ($message['sender_id'] == $this->selectedUser->id) {
-            $messageObject = ChatMessage::find($message['id']);
-            $this->messages->push($messageObject);
+        if ($this->selectedUser) {
+            $isFromSelectedUser = $message['sender_id'] == $this->selectedUser->id && $message['receiver_id'] == auth()->id();
+            $isToSelectedUser = $message['sender_id'] == auth()->id() && $message['receiver_id'] == $this->selectedUser->id;
+            
+            if ($isFromSelectedUser || $isToSelectedUser) {
+                $messageObject = ChatMessage::find($message['id']);
+                if ($messageObject && !$this->messages->contains('id', $messageObject->id)) {
+                    $this->messages->push($messageObject);
+                }
+            }
         }
     }
 

@@ -8,16 +8,16 @@
             <div class="card-body p-0 chat-sidebar" style="overflow-y: auto;">
                 <ul class="list-group list-group-flush">
                     @foreach ($users as $user)
-                        <li wire:click="selectUser({{ $user->id }})"
-                            class="list-group-item list-group-item-action d-flex align-items-center py-2 px-3 user-contact {{ $selectedUser && $selectedUser->id === $user->id ? 'active-contact' : '' }}"
-                            style="cursor:pointer;">
-                            <img src="https://i.pravatar.cc/40?img={{ $loop->iteration }}"
-                                class="rounded-circle me-3 border border-2" alt="User Avatar">
-                            <div class="contact-info">
-                                <h6 class="mb-0 user-name">{{ $user->name }}</h6>
-                                <small class="text-muted">Online</small>
-                            </div>
-                        </li>
+                    <li wire:click="selectUser({{ $user->id }})"
+                        class="list-group-item list-group-item-action d-flex align-items-center py-2 px-3 user-contact {{ $selectedUser && $selectedUser->id === $user->id ? 'active-contact' : '' }}"
+                        style="cursor:pointer;">
+                        <img src="https://i.pravatar.cc/40?img={{ $loop->iteration }}"
+                            class="rounded-circle me-3 border border-2" alt="User Avatar">
+                        <div class="contact-info">
+                            <h6 class="mb-0 user-name">{{ $user->name }}</h6>
+                            <small class="text-muted">Online</small>
+                        </div>
+                    </li>
                     @endforeach
                 </ul>
             </div>
@@ -34,12 +34,12 @@
 
             <div class="card-body chat-box" id="chat-box" style="overflow-y:auto; flex-grow:1;">
                 @foreach ($messages as $message)
-                    <div
-                        class="message-row {{ $message->sender_id === auth()->id() ? 'justify-content-end' : 'justify-content-start' }} d-flex">
-                        <div class="message {{ $message->sender_id === auth()->id() ? 'sent' : 'received' }}">
-                            {{ $message->message }}
-                        </div>
+                <div
+                    class="message-row {{ $message->sender_id === auth()->id() ? 'justify-content-end' : 'justify-content-start' }} d-flex">
+                    <div class="message {{ $message->sender_id === auth()->id() ? 'sent' : 'received' }}">
+                        {{ $message->message }}
                     </div>
+                </div>
                 @endforeach
             </div>
 
@@ -59,7 +59,6 @@
     </div>
 </div>
 
-{{-- تمرير تلقائي للرسائل الجديدة --}}
 <script>
     const chatBox = document.getElementById('chat-box');
 
@@ -67,18 +66,29 @@
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    document.addEventListener('DOMContentLoaded', scrollToBottom);
+    document.addEventListener('DOMContentLoaded', () => {
+        scrollToBottom();
+
+        const userId = @json(auth() - > id());
+        const channel = window.Echo.private("chat." + userId);
+        channel.listen(".sent-message", (data) => {
+            console.log("New Message:", data);
+
+            @this.call('handleNewMessage', data);
+        });
+
+        channel.subscribed(() => {
+            console.log("Subscribed successfully to chat." + userId);
+        });
+
+        channel.error((err) => {
+            console.error("Echo error:", err);
+        });
+    });
+
     const observer = new MutationObserver(scrollToBottom);
-    observer.observe(chatBox, { childList: true, subtree: true });
-</script>
-
-<script>
-    window.Laravel = { userId: {{ auth()->id() }} };
-
-    document.addEventListener('livewire:load', function () {
-        window.Echo.private(`chat.${window.Laravel.userId}`)
-            .listen('.sent-message', (e) => {
-                Livewire.emit('messageReceived', e.message);
-            });
+    observer.observe(chatBox, {
+        childList: true,
+        subtree: true
     });
 </script>

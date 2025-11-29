@@ -32,8 +32,14 @@ class SentMessage implements ShouldBroadcastNow
     {
         return [
             new PrivateChannel('chat.' . $this->message->receiver_id),
+            new PrivateChannel('chat.' . $this->message->sender_id),
         ];
     }
+    public function broadcastAs(): string
+    {
+        return 'sent-message';
+    }
+
     public function broadcastWith()
     {
         return [
