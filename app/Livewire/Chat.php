@@ -32,13 +32,13 @@ class Chat extends Component
 
         $this->messages = ChatMessage::where(function ($query) {
             $query->where('sender_id', auth()->id())
-                  ->where('receiver_id', $this->selectedUser->id);
+                ->where('receiver_id', $this->selectedUser->id);
         })->orWhere(function ($query) {
             $query->where('sender_id', $this->selectedUser->id)
-                  ->where('receiver_id', auth()->id());
+                ->where('receiver_id', auth()->id());
         })
-        ->orderBy('created_at', 'asc')
-        ->get();
+            ->orderBy('created_at', 'asc')
+            ->get();
     }
 
     public function selectUser($userId)
@@ -46,6 +46,12 @@ class Chat extends Component
         $this->selectedUser = User::find($userId);
         $this->loadMessages();
         $this->newMessage = '';
+    }
+
+    public function resetSelectedUser()
+    {
+        $this->selectedUser = null;
+        $this->messages = collect();
     }
 
     public function submit()
@@ -69,7 +75,7 @@ class Chat extends Component
         if ($this->selectedUser) {
             $isFromSelectedUser = $message['sender_id'] == $this->selectedUser->id && $message['receiver_id'] == auth()->id();
             $isToSelectedUser = $message['sender_id'] == auth()->id() && $message['receiver_id'] == $this->selectedUser->id;
-            
+
             if ($isFromSelectedUser || $isToSelectedUser) {
                 $messageObject = ChatMessage::find($message['id']);
                 if ($messageObject && !$this->messages->contains('id', $messageObject->id)) {

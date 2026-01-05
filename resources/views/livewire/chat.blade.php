@@ -3,7 +3,7 @@
     <div class="chat-wrapper">
 
         {{-- LEFT SIDEBAR - Contacts --}}
-        <div class="chat-sidebar">
+        <div class="chat-sidebar {{ $selectedUser ? 'hidden-on-mobile' : '' }}">
 
             {{-- Sidebar Header --}}
             <div class="sidebar-header">
@@ -68,13 +68,16 @@
         </div>
 
         {{-- RIGHT SIDE - Chat Area --}}
-        <div class="chat-main">
+        <div class="chat-main {{ !$selectedUser ? 'hidden-on-mobile' : '' }}">
 
             {{-- Chat Header --}}
             <div class="chat-header">
                 @if($selectedUser)
                 <div class="chat-header-content">
                     <div class="chat-header-user">
+                        <button wire:click="resetSelectedUser" class="back-btn show-on-mobile">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
                         <div class="chat-header-avatar-wrapper">
                             <img src="https://i.pravatar.cc/45?img=1"
                                 class="chat-header-avatar"
